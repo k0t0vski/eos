@@ -14,14 +14,19 @@ let _client: S3Client | null = null;
 
 function getClient(): S3Client {
   if (!_client) {
+    const endpoint = process.env.EOS_S3_ENDPOINT_URL || undefined;
+    const accessKeyId = process.env.EOS_S3_ACCESS_KEY_ID;
+    const secretAccessKey = process.env.EOS_S3_SECRET_ACCESS_KEY;
+    const forcePathStyle = process.env.EOS_S3_FORCE_PATH_STYLE;
+
     _client = new S3Client({
-      endpoint: process.env.EOS_S3_ENDPOINT_URL || 'http://localhost:8333',
       region: process.env.EOS_S3_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.EOS_S3_ACCESS_KEY_ID || '',
-        secretAccessKey: process.env.EOS_S3_SECRET_ACCESS_KEY || '',
-      },
-      forcePathStyle: true,
+      // Without an endpoint, the SDK uses AWS S3
+      ...(endpoint ? { endpoint } : {}),
+      // Without static keys, the SDK uses its default credential chain (environment, profile, instance role, ...)
+      ...(accessKeyId && secretAccessKey ? { credentials: { accessKeyId, secretAccessKey } } : {}),
+      // Self-hosted S3 (e.g. SeaweedFS) needs path-style addressing; AWS S3 uses virtual-hosted style
+      forcePathStyle: forcePathStyle ? forcePathStyle === 'true' : Boolean(endpoint),
     });
   }
   return _client;

@@ -137,11 +137,18 @@ class FileDbConfig(BaseSettings):
 
     bucket: str = Field("eos", validation_alias="EOS_S3_BUCKET")
     endpoint_url: str | None = Field(None, validation_alias="EOS_S3_ENDPOINT_URL")
-    access_key_id: str = Field(..., validation_alias="EOS_S3_ACCESS_KEY_ID")
-    secret_access_key: str = Field(..., validation_alias="EOS_S3_SECRET_ACCESS_KEY")
+    # Without static keys, boto3 uses the AWS default credential chain (environment, profile, instance role, ...)
+    access_key_id: str | None = Field(None, validation_alias="EOS_S3_ACCESS_KEY_ID")
+    secret_access_key: str | None = Field(None, validation_alias="EOS_S3_SECRET_ACCESS_KEY")
     region_name: str = Field("us-east-1", validation_alias="EOS_S3_REGION")
     connect_timeout: int = Field(10, validation_alias="EOS_S3_CONNECT_TIMEOUT")
     read_timeout: int = Field(30, validation_alias="EOS_S3_READ_TIMEOUT")
+
+    @model_validator(mode="after")
+    def validate_credentials(self) -> "FileDbConfig":
+        if (self.access_key_id is None) != (self.secret_access_key is None):
+            raise ValueError("Set both EOS_S3_ACCESS_KEY_ID and EOS_S3_SECRET_ACCESS_KEY, or neither")
+        return self
 
     model_config = SettingsConfigDict(env_file=".env", env_ignore_empty=True, extra="ignore", populate_by_name=True)
 

@@ -86,6 +86,12 @@ is needed. Set ``EOS_POSTGRES_USER``, ``EOS_POSTGRES_PASSWORD``, ``EOS_S3_ACCESS
 ``EOS_S3_SECRET_ACCESS_KEY`` to values of your choice before running ``eos services up``, and use the same
 values in ``web_ui/.env``.
 
+To use AWS S3 instead of SeaweedFS, create the bucket first, leave ``EOS_S3_ENDPOINT_URL`` unset in ``.env``,
+and set ``EOS_S3_BUCKET`` and ``EOS_S3_REGION``. Leave ``EOS_S3_ACCESS_KEY_ID`` and
+``EOS_S3_SECRET_ACCESS_KEY`` empty to use the AWS credential chain, for example an EC2 instance role.
+Set both keys or neither. Use the same bucket and region in ``web_ui/.env``. If you set
+``EOS_S3_ENDPOINT_URL`` there, the web UI uses path-style addressing unless ``EOS_S3_FORCE_PATH_STYLE=false``.
+
 Then initialize services and start the orchestrator:
 
 .. code-block:: shell
